@@ -1,0 +1,126 @@
+import { useState, useEffect } from 'react';
+import { Search, Plus, Eye, Mail, Phone } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
+import { Database } from '../../types/database';
+
+type Customer = Database['public']['Tables']['customers']['Row'];
+
+export function CustomersSection() {
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    loadCustomers();
+  }, []);
+
+  async function loadCustomers() {
+    try {
+      const { data, error } = await supabase
+        .from('customers')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setCustomers(data || []);
+    } catch (error) {
+      console.error('Error loading customers:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const filteredCustomers = customers.filter(customer =>
+    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    customer.phone.includes(searchTerm) ||
+    customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    customer.company_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading) {
+    return <div className="text-center py-12">Загрузка клиентов...</div>;
+  }
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">База клиентов</h1>
+          <p className="text-gray-600 mt-2">Управление информацией о клиентах</p>
+        </div>
+        <button className="flex items-center space-x-2 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors">
+          <Plus className="h-5 w-5" />
+          <span>Добавить клиента</span>
+        </button>
+      </div>
+
+      <div className="mb-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+          <input
+            type="text"
+            placeholder="Поиск по имени, телефону, email или компании..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredCustomers.map(customer => (
+          <div key={customer.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">{customer.name}</h3>
+                {customer.company_name && (
+                  <p className="text-sm text-gray-600">{customer.company_name}</p>
+                )}
+              </div>
+              <button className="text-orange-600 hover:text-orange-800">
+                <Eye className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <Phone className="h-4 w-4" />
+                <span>{customer.phone}</span>
+              </div>
+              {customer.email && (
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <Mail className="h-4 w-4" />
+                  <span>{customer.email}</span>
+                </div>
+              )}
+            </div>
+
+            {customer.address && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-600">{customer.address}</p>
+              </div>
+            )}
+
+            {customer.notes && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-600 line-clamp-2">{customer.notes}</p>
+              </div>
+            )}
+
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <p className="text-xs text-gray-500">
+                Клиент с {new Date(customer.created_at).toLocaleDateString('ru-RU')}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {filteredCustomers.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-gray-600">Клиенты не найдены</p>
+        </div>
+      )}
+    </div>
+  );
+}
