@@ -1,23 +1,48 @@
 import { useState, useEffect } from 'react';
-import { Plus, Phone, MessageSquare, Calendar, Eye } from 'lucide-react';
+import { Plus, Phone, MessageSquare, Calendar, Eye, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { Modal } from '../../components/Modal';
 import { Database } from '../../types/database';
 
 type Order = Database['public']['Tables']['orders']['Row'];
 type Customer = Database['public']['Tables']['customers']['Row'];
+type Product = Database['public']['Tables']['products']['Row'];
 
 const ORDER_STATUSES = ['Новый', 'В обработке', 'Согласован', 'Доставляется', 'Выполнен', 'Отменен'];
 
 export function OrdersSection() {
   const [orders, setOrders] = useState<(Order & { customer: Customer })[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [showAddOrder, setShowAddOrder] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [formData, setFormData] = useState({
+    customer_id: '',
+    product_id: '',
+    quantity: 0,
+    delivery_type: 'манипулятор',
+    delivery_address: '',
+    source: 'phone'
+  });
 
   useEffect(() => {
     loadOrders();
+    loadCustomersAndProducts();
   }, []);
+
+  async function loadCustomersAndProducts() {
+    try {
+      const { data: customersData } = await supabase.from('customers').select('*');
+      const { data: productsData } = await supabase.from('products').select('*').eq('is_active', true);
+      setCustomers(customersData || []);
+      setProducts(productsData || []);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+  }
 
   async function loadOrders() {
     try {
@@ -35,6 +60,70 @@ export function OrdersSection() {
       console.error('Error loading orders:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleAddOrder(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const selectedProduct = products.find(p => p.id === formData.product_id);
+      if (!selectedProduct) throw new Error('Product not found');
+
+      const productCost = selectedProduct.price_per_sqm * formData.quantity;
+      const deliveryCost = Math.round(50 * (formData.delivery_type === 'манипулятор' ? 150 : 120) / 1000);
+      const totalCost = productCost + deliveryCost;
+
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          customer_id: formData.customer_id,
+          status: 'Новый',
+          total_amount: totalCost,
+          delivery_cost: deliveryCost,
+          delivery_type: formData.delivery_type,
+          delivery_address: formData.delivery_address,
+          source: formData.source
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      await supabase
+        .from('order_items')
+        .insert({
+          order_id: order.id,
+          product_id: formData.product_id,
+          quantity: formData.quantity,
+          price_per_sqm: selectedProduct.price_per_sqm,
+          subtotal: productCost
+        });
+
+      await supabase
+        .from('order_history')
+        .insert({
+          order_id: order.id,
+          action_type: 'status_change',
+          new_status: 'Новый',
+          comment: 'Заказ создан вручную'
+        });
+
+      setFormData({
+        customer_id: '',
+        product_id: '',
+        quantity: 0,
+        delivery_type: 'манипулятор',
+        delivery_address: '',
+        source: 'phone'
+      });
+      setShowAddOrder(false);
+      loadOrders();
+    } catch (error) {
+      console.error('Error adding order:', error);
+      alert('Ошибка при создании заказа');
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -59,6 +148,18 @@ export function OrdersSection() {
       loadOrders();
     } catch (error) {
       console.error('Error updating order:', error);
+    }
+  }
+
+  async function deleteOrder(orderId: string) {
+    if (!confirm('Удалить заказ? Это действие необратимо.')) return;
+    try {
+      const { error } = await supabase.from('orders').delete().eq('id', orderId);
+      if (error) throw error;
+      loadOrders();
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      alert('Ошибка при удалении заказа');
     }
   }
 
@@ -97,6 +198,88 @@ export function OrdersSection() {
           <span>Добавить заказ (звонок)</span>
         </button>
       </div>
+
+      <Modal isOpen={showAddOrder} title="Создать заказ" onClose={() => setShowAddOrder(false)}>
+        <form onSubmit={handleAddOrder} className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Клиент <span className="text-red-500">*</span></label>
+            <select
+              required
+              value={formData.customer_id}
+              onChange={(e) => setFormData({...formData, customer_id: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+            >
+              <option value="">Выберите клиента</option>
+              {customers.map(c => (
+                <option key={c.id} value={c.id}>{c.name} ({c.phone})</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Товар <span className="text-red-500">*</span></label>
+            <select
+              required
+              value={formData.product_id}
+              onChange={(e) => setFormData({...formData, product_id: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+            >
+              <option value="">Выберите товар</option>
+              {products.map(p => (
+                <option key={p.id} value={p.id}>{p.name} - {p.price_per_sqm} ₽/м²</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Количество м² <span className="text-red-500">*</span></label>
+            <input
+              type="number"
+              required
+              step="0.1"
+              value={formData.quantity}
+              onChange={(e) => setFormData({...formData, quantity: parseFloat(e.target.value)})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Тип доставки</label>
+            <select
+              value={formData.delivery_type}
+              onChange={(e) => setFormData({...formData, delivery_type: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+            >
+              <option value="манипулятор">Манипулятор</option>
+              <option value="фура">Фура</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Адрес доставки</label>
+            <input
+              type="text"
+              value={formData.delivery_address}
+              onChange={(e) => setFormData({...formData, delivery_address: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Источник</label>
+            <select
+              value={formData.source}
+              onChange={(e) => setFormData({...formData, source: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+            >
+              <option value="phone">Телефон</option>
+              <option value="website">Сайт</option>
+            </select>
+          </div>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 disabled:bg-gray-300 transition-colors font-semibold"
+          >
+            {submitting ? 'Создание...' : 'Создать заказ'}
+          </button>
+        </form>
+      </Modal>
 
       <div className="mb-6 flex space-x-2 overflow-x-auto">
         <button
@@ -176,14 +359,10 @@ export function OrdersSection() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   <div className="flex space-x-2">
-                    <button className="text-blue-600 hover:text-blue-800">
-                      <Eye className="h-4 w-4" />
-                    </button>
-                    <button className="text-green-600 hover:text-green-800">
-                      <Phone className="h-4 w-4" />
-                    </button>
-                    <button className="text-orange-600 hover:text-orange-800">
-                      <MessageSquare className="h-4 w-4" />
+                    <button
+                      onClick={() => deleteOrder(order.id)}
+                      className="text-red-600 hover:text-red-800">
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </td>

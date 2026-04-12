@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, Eye, Mail, Phone } from 'lucide-react';
+import { Search, Plus, Eye, Mail, Phone, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { Modal } from '../../components/Modal';
 import { Database } from '../../types/database';
 
 type Customer = Database['public']['Tables']['customers']['Row'];
@@ -9,6 +10,16 @@ export function CustomersSection() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    company_name: '',
+    address: '',
+    notes: ''
+  });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     loadCustomers();
@@ -30,6 +41,37 @@ export function CustomersSection() {
     }
   }
 
+  async function handleAddCustomer(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('customers')
+        .insert([formData]);
+      if (error) throw error;
+      setFormData({ name: '', phone: '', email: '', company_name: '', address: '', notes: '' });
+      setShowModal(false);
+      loadCustomers();
+    } catch (error) {
+      console.error('Error adding customer:', error);
+      alert('Ошибка при добавлении клиента');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function deleteCustomer(id: string) {
+    if (!confirm('Вы уверены?')) return;
+    try {
+      const { error } = await supabase.from('customers').delete().eq('id', id);
+      if (error) throw error;
+      loadCustomers();
+    } catch (error) {
+      console.error('Error deleting customer:', error);
+      alert('Ошибка при удалении клиента');
+    }
+  }
+
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.phone.includes(searchTerm) ||
@@ -48,11 +90,81 @@ export function CustomersSection() {
           <h1 className="text-3xl font-bold text-gray-900">База клиентов</h1>
           <p className="text-gray-600 mt-2">Управление информацией о клиентах</p>
         </div>
-        <button className="flex items-center space-x-2 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors">
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex items-center space-x-2 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors">
           <Plus className="h-5 w-5" />
           <span>Добавить клиента</span>
         </button>
       </div>
+
+      <Modal isOpen={showModal} title="Добавить нового клиента" onClose={() => setShowModal(false)}>
+        <form onSubmit={handleAddCustomer} className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Имя <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              required
+              value={formData.name}
+              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Телефон <span className="text-red-500">*</span></label>
+            <input
+              type="tel"
+              required
+              value={formData.phone}
+              onChange={(e) => setFormData({...formData, phone: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Компания</label>
+            <input
+              type="text"
+              value={formData.company_name}
+              onChange={(e) => setFormData({...formData, company_name: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Адрес</label>
+            <input
+              type="text"
+              value={formData.address}
+              onChange={(e) => setFormData({...formData, address: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Примечание</label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) => setFormData({...formData, notes: e.target.value})}
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 disabled:bg-gray-300 transition-colors font-semibold"
+          >
+            {submitting ? 'Добавление...' : 'Добавить клиента'}
+          </button>
+        </form>
+      </Modal>
 
       <div className="mb-6">
         <div className="relative">
@@ -77,8 +189,10 @@ export function CustomersSection() {
                   <p className="text-sm text-gray-600">{customer.company_name}</p>
                 )}
               </div>
-              <button className="text-orange-600 hover:text-orange-800">
-                <Eye className="h-5 w-5" />
+              <button
+                onClick={() => deleteCustomer(customer.id)}
+                className="text-red-600 hover:text-red-800">
+                <Trash2 className="h-5 w-5" />
               </button>
             </div>
 
