@@ -1,17 +1,10 @@
 import { useState } from 'react';
 import { ShoppingCart, CheckCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { CalculatorResult } from './CalculatorPage';
 
 interface OrderFormPageProps {
-  orderData?: {
-    product: { id: string; name: string; price_per_sqm: number };
-    quantity: number;
-    deliveryType: string;
-    distance: number;
-    productCost: number;
-    deliveryCost: number;
-    totalCost: number;
-  };
+  orderData?: CalculatorResult;
   onNavigate: (page: string) => void;
 }
 
@@ -22,13 +15,14 @@ export function OrderFormPage({ orderData, onNavigate }: OrderFormPageProps) {
     email: '',
     company: '',
     address: '',
-    notes: ''
+    notes: '',
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!orderData || orderData.items.length === 0) return;
     setLoading(true);
 
     try {
@@ -40,50 +34,51 @@ export function OrderFormPage({ orderData, onNavigate }: OrderFormPageProps) {
           email: formData.email,
           company_name: formData.company,
           address: formData.address,
-          notes: formData.notes
+          notes: formData.notes,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (customerError) throw customerError;
+      if (!customer) throw new Error('Не удалось создать клиента');
 
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
           customer_id: customer.id,
           status: 'Новый',
-          total_amount: orderData?.totalCost || 0,
-          delivery_cost: orderData?.deliveryCost || 0,
-          delivery_type: orderData?.deliveryType || '',
+          total_amount: orderData.totalCost,
+          delivery_cost: orderData.deliveryCost,
+          delivery_type: orderData.deliveryType,
           delivery_address: formData.address,
           notes: formData.notes,
-          source: 'website'
+          source: 'website',
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (orderError) throw orderError;
+      if (!order) throw new Error('Не удалось создать заказ');
 
-      if (orderData?.product) {
-        await supabase
-          .from('order_items')
-          .insert({
-            order_id: order.id,
-            product_id: orderData.product.id,
-            quantity: orderData.quantity,
-            price_per_sqm: orderData.product.price_per_sqm,
-            subtotal: orderData.productCost
-          });
+      const orderItems = orderData.items.map(item => ({
+        order_id: order.id,
+        product_id: item.product.id,
+        quantity: item.quantity,
+        price_per_sqm: item.product.price_per_sqm,
+        subtotal: item.subtotal,
+      }));
 
-        await supabase
-          .from('order_history')
-          .insert({
-            order_id: order.id,
-            action_type: 'status_change',
-            new_status: 'Новый',
-            comment: 'Заказ создан через сайт'
-          });
-      }
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+      if (itemsError) throw itemsError;
+
+      await supabase.from('order_history').insert({
+        order_id: order.id,
+        action_type: 'status_change',
+        new_status: 'Новый',
+        comment: 'Заказ создан через сайт',
+      });
 
       setSuccess(true);
       setTimeout(() => {
@@ -121,20 +116,31 @@ export function OrderFormPage({ orderData, onNavigate }: OrderFormPageProps) {
             <h1 className="text-3xl font-bold text-gray-900">Оформление заявки</h1>
           </div>
 
-          {orderData && (
+          {orderData && orderData.items.length > 0 && (
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 mb-8">
               <h3 className="text-lg font-semibold mb-4">Детали заказа</h3>
+              <div className="space-y-2 mb-4">
+                {orderData.items.map(item => (
+                  <div key={item.product.id} className="flex justify-between text-sm border-b border-orange-200 pb-2">
+                    <div>
+                      <div className="font-semibold">{item.product.name}</div>
+                      <div className="text-gray-600">{item.quantity} м² × {item.product.price_per_sqm} ₽</div>
+                    </div>
+                    <div className="font-semibold">{item.subtotal.toLocaleString('ru-RU')} ₽</div>
+                  </div>
+                ))}
+              </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-gray-600">Товар:</p>
-                  <p className="font-semibold">{orderData.product.name}</p>
+                  <p className="text-gray-600">Транспорт:</p>
+                  <p className="font-semibold">{orderData.deliveryType}</p>
                 </div>
                 <div>
-                  <p className="text-gray-600">Количество:</p>
-                  <p className="font-semibold">{orderData.quantity} м²</p>
+                  <p className="text-gray-600">Вес груза:</p>
+                  <p className="font-semibold">{orderData.totalWeight.toLocaleString('ru-RU')} кг</p>
                 </div>
                 <div>
-                  <p className="text-gray-600">Стоимость материала:</p>
+                  <p className="text-gray-600">Стоимость материалов:</p>
                   <p className="font-semibold">{orderData.productCost.toLocaleString('ru-RU')} ₽</p>
                 </div>
                 <div>

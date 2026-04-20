@@ -1,19 +1,67 @@
 import { useState, useEffect } from 'react';
-import { Calculator, Truck, MapPin, ShoppingCart } from 'lucide-react';
+import { Calculator, Truck, MapPin, ShoppingCart, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/database';
 
 type Product = Database['public']['Tables']['products']['Row'];
 
+export interface CartItem {
+  product: Product;
+  quantity: number;
+  subtotal: number;
+  weight: number;
+}
+
+export interface CalculatorResult {
+  items: CartItem[];
+  deliveryType: string;
+  distance: number;
+  totalWeight: number;
+  productCost: number;
+  deliveryCost: number;
+  totalCost: number;
+}
+
 interface CalculatorPageProps {
-  onNavigate: (page: string, data?: unknown) => void;
+  onNavigate: (result: CalculatorResult) => void;
+}
+
+function getWeightPerSqm(product: Product): number {
+  const name = product.name.toLowerCase();
+  if (name.includes('40мм')) return 100;
+  if (name.includes('60мм')) return 125;
+  if (product.category === 'Бордюры') return 80;
+  if (product.category === 'Смеси') return 50;
+  return 100;
+}
+
+interface Transport {
+  name: string;
+  capacityKg: number;
+  baseCost: number;
+  label: string;
+}
+
+const TRANSPORT_OPTIONS: Transport[] = [
+  { name: 'manipulator_5t', capacityKg: 5000, baseCost: 6000, label: 'Манипулятор 5т' },
+  { name: 'manipulator_8t', capacityKg: 8000, baseCost: 9000, label: 'Манипулятор 8т' },
+  { name: 'manipulator_10t_truck', capacityKg: Infinity, baseCost: 17000, label: 'Манипулятор 10т / Фура' },
+];
+
+const PER_KM_RATE = 100;
+
+function pickTransport(totalWeightKg: number): Transport {
+  for (const t of TRANSPORT_OPTIONS) {
+    if (totalWeightKg <= t.capacityKg) return t;
+  }
+  return TRANSPORT_OPTIONS[TRANSPORT_OPTIONS.length - 1];
 }
 
 export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
   const [products, setProducts] = useState<Product[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [quantity, setQuantity] = useState<number>(0);
-  const [deliveryType, setDeliveryType] = useState<'manipulator' | 'truck'>('manipulator');
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [selectedProductId, setSelectedProductId] = useState<string>('');
+  const [newQuantity, setNewQuantity] = useState<number>(0);
   const [distance, setDistance] = useState<number>(0);
 
   useEffect(() => {
@@ -25,122 +73,196 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
       .from('products')
       .select('*')
       .eq('is_active', true)
+      .order('category')
       .order('name');
     setProducts(data || []);
   }
 
-  const calculateDeliveryCost = () => {
-    if (distance === 0) return 0;
+  const productsByCategory = products.reduce<Record<string, Product[]>>((acc, p) => {
+    (acc[p.category] = acc[p.category] || []).push(p);
+    return acc;
+  }, {});
 
-    const baseRate = deliveryType === 'manipulator' ? 150 : 120;
-    const quantityMultiplier = quantity > 100 ? 1.2 : 1;
+  const addItem = () => {
+    if (!selectedProductId || newQuantity <= 0) return;
+    const product = products.find(p => p.id === selectedProductId);
+    if (!product) return;
 
-    return Math.round(distance * baseRate * quantityMultiplier);
+    const existing = items.find(i => i.product.id === product.id);
+    if (existing) {
+      setItems(items.map(i =>
+        i.product.id === product.id
+          ? {
+              ...i,
+              quantity: i.quantity + newQuantity,
+              subtotal: (i.quantity + newQuantity) * product.price_per_sqm,
+              weight: (i.quantity + newQuantity) * getWeightPerSqm(product),
+            }
+          : i
+      ));
+    } else {
+      setItems([
+        ...items,
+        {
+          product,
+          quantity: newQuantity,
+          subtotal: newQuantity * product.price_per_sqm,
+          weight: newQuantity * getWeightPerSqm(product),
+        },
+      ]);
+    }
+    setSelectedProductId('');
+    setNewQuantity(0);
   };
 
-  const productCost = selectedProduct ? selectedProduct.price_per_sqm * quantity : 0;
-  const deliveryCost = calculateDeliveryCost();
+  const removeItem = (productId: string) => {
+    setItems(items.filter(i => i.product.id !== productId));
+  };
+
+  const updateItemQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeItem(productId);
+      return;
+    }
+    setItems(items.map(i =>
+      i.product.id === productId
+        ? {
+            ...i,
+            quantity,
+            subtotal: quantity * i.product.price_per_sqm,
+            weight: quantity * getWeightPerSqm(i.product),
+          }
+        : i
+    ));
+  };
+
+  const totalWeight = items.reduce((sum, i) => sum + i.weight, 0);
+  const productCost = items.reduce((sum, i) => sum + i.subtotal, 0);
+  const selectedTransport = pickTransport(totalWeight);
+  const deliveryCost = items.length > 0
+    ? selectedTransport.baseCost + distance * PER_KM_RATE
+    : 0;
   const totalCost = productCost + deliveryCost;
 
   const handleOrder = () => {
-    if (!selectedProduct || quantity === 0) return;
-
-    onNavigate('order', {
-      product: selectedProduct,
-      quantity,
-      deliveryType,
+    if (items.length === 0) return;
+    onNavigate({
+      items,
+      deliveryType: selectedTransport.label,
       distance,
+      totalWeight,
       productCost,
       deliveryCost,
-      totalCost
+      totalCost,
     });
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-lg p-8">
           <div className="flex items-center mb-8">
             <Calculator className="h-8 w-8 text-orange-600 mr-3" />
             <h1 className="text-3xl font-bold text-gray-900">Калькулятор стоимости</h1>
           </div>
 
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Выберите продукт
-              </label>
-              <select
-                value={selectedProduct?.id || ''}
-                onChange={(e) => {
-                  const product = products.find(p => p.id === e.target.value);
-                  setSelectedProduct(product || null);
-                }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              >
-                <option value="">-- Выберите продукт --</option>
-                {products.map(product => (
-                  <option key={product.id} value={product.id}>
-                    {product.name} - {product.price_per_sqm} ₽/м²
-                  </option>
-                ))}
-              </select>
+          <div className="space-y-8">
+            <div className="border-2 border-dashed border-gray-200 rounded-lg p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Добавить товар</h2>
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                <div className="md:col-span-7">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Продукт
+                  </label>
+                  <select
+                    value={selectedProductId}
+                    onChange={(e) => setSelectedProductId(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  >
+                    <option value="">-- Выберите продукт --</option>
+                    {Object.entries(productsByCategory).map(([cat, list]) => (
+                      <optgroup key={cat} label={cat}>
+                        {list.map(p => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} — {p.price_per_sqm} ₽/м²
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                </div>
+                <div className="md:col-span-3">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Количество (м²)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={newQuantity || ''}
+                    onChange={(e) => setNewQuantity(parseFloat(e.target.value) || 0)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="0"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <button
+                    onClick={addItem}
+                    disabled={!selectedProductId || newQuantity <= 0}
+                    className="w-full flex items-center justify-center space-x-2 bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold"
+                  >
+                    <Plus className="h-5 w-5" />
+                    <span>Добавить</span>
+                  </button>
+                </div>
+              </div>
             </div>
 
-            {selectedProduct && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-2"><span className="font-semibold">Категория:</span> {selectedProduct.category}</p>
-                <p className="text-sm text-gray-600 mb-2"><span className="font-semibold">Описание:</span> {selectedProduct.description}</p>
-                <p className="text-sm text-gray-600"><span className="font-semibold">В наличии:</span> {selectedProduct.stock_quantity} м²</p>
+            {items.length > 0 && (
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                  Корзина ({items.length})
+                </h2>
+                <div className="space-y-3">
+                  {items.map(item => (
+                    <div
+                      key={item.product.id}
+                      className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200"
+                    >
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900">{item.product.name}</div>
+                        <div className="text-sm text-gray-600">
+                          {item.product.category} • {item.product.price_per_sqm} ₽/м² •{' '}
+                          {getWeightPerSqm(item.product)} кг/м²
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          value={item.quantity}
+                          onChange={(e) =>
+                            updateItemQuantity(item.product.id, parseFloat(e.target.value) || 0)
+                          }
+                          className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-center"
+                        />
+                        <span className="text-sm text-gray-600">м²</span>
+                      </div>
+                      <div className="w-28 text-right font-semibold text-gray-900">
+                        {item.subtotal.toLocaleString('ru-RU')} ₽
+                      </div>
+                      <button
+                        onClick={() => removeItem(item.product.id)}
+                        className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Количество (м²)
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="0.1"
-                value={quantity}
-                onChange={(e) => setQuantity(parseFloat(e.target.value) || 0)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                placeholder="Введите количество в м²"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Тип доставки
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={() => setDeliveryType('manipulator')}
-                  className={`p-4 border-2 rounded-lg transition-all ${
-                    deliveryType === 'manipulator'
-                      ? 'border-orange-600 bg-orange-50'
-                      : 'border-gray-300 hover:border-orange-400'
-                  }`}
-                >
-                  <Truck className="h-6 w-6 mx-auto mb-2 text-orange-600" />
-                  <div className="font-semibold">Манипулятор</div>
-                  <div className="text-sm text-gray-600">150 ₽/км</div>
-                </button>
-                <button
-                  onClick={() => setDeliveryType('truck')}
-                  className={`p-4 border-2 rounded-lg transition-all ${
-                    deliveryType === 'truck'
-                      ? 'border-orange-600 bg-orange-50'
-                      : 'border-gray-300 hover:border-orange-400'
-                  }`}
-                >
-                  <Truck className="h-6 w-6 mx-auto mb-2 text-orange-600" />
-                  <div className="font-semibold">Фура</div>
-                  <div className="text-sm text-gray-600">120 ₽/км</div>
-                </button>
-              </div>
-            </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -151,18 +273,40 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
                 type="number"
                 min="0"
                 step="1"
-                value={distance}
+                value={distance || ''}
                 onChange={(e) => setDistance(parseFloat(e.target.value) || 0)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 placeholder="Введите расстояние в км"
               />
             </div>
 
+            {items.length > 0 && (
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
+                <div className="flex items-center mb-3">
+                  <Truck className="h-6 w-6 text-blue-600 mr-2" />
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Рекомендованный транспорт
+                  </h3>
+                </div>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-xl font-bold text-blue-700">
+                    {selectedTransport.label}
+                  </span>
+                  <span className="text-sm text-gray-600">
+                    Подача {selectedTransport.baseCost.toLocaleString('ru-RU')} ₽ + {PER_KM_RATE} ₽/км
+                  </span>
+                </div>
+                <div className="mt-2 text-sm text-gray-600">
+                  Общий вес груза: <span className="font-semibold">{totalWeight.toLocaleString('ru-RU')} кг</span>
+                </div>
+              </div>
+            )}
+
             <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-6 rounded-lg border-2 border-orange-200">
               <h3 className="text-lg font-semibold mb-4 text-gray-900">Расчет стоимости</h3>
               <div className="space-y-2">
                 <div className="flex justify-between text-gray-700">
-                  <span>Стоимость материала:</span>
+                  <span>Стоимость материалов:</span>
                   <span className="font-semibold">{productCost.toLocaleString('ru-RU')} ₽</span>
                 </div>
                 <div className="flex justify-between text-gray-700">
@@ -178,7 +322,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
 
             <button
               onClick={handleOrder}
-              disabled={!selectedProduct || quantity === 0}
+              disabled={items.length === 0}
               className="w-full flex items-center justify-center space-x-2 bg-orange-600 text-white py-4 rounded-lg hover:bg-orange-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed text-lg font-semibold"
             >
               <ShoppingCart className="h-5 w-5" />

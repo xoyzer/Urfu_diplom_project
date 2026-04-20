@@ -4,25 +4,15 @@ import { Header } from './components/Header';
 import { HomePage } from './pages/HomePage';
 import { AboutPage } from './pages/AboutPage';
 import { CatalogPage } from './pages/CatalogPage';
-import { CalculatorPage } from './pages/CalculatorPage';
+import { CalculatorPage, CalculatorResult } from './pages/CalculatorPage';
 import { ContactsPage } from './pages/ContactsPage';
 import { OrderFormPage } from './pages/OrderFormPage';
 import { LoginPage } from './pages/LoginPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 
-interface OrderData {
-  product: { id: string; name: string; price_per_sqm: number };
-  quantity: number;
-  deliveryType: string;
-  distance: number;
-  productCost: number;
-  deliveryCost: number;
-  totalCost: number;
-}
-
 function AppContent() {
   const [currentPage, setCurrentPage] = useState('home');
-  const [orderData, setOrderData] = useState<OrderData | undefined>();
+  const [orderData, setOrderData] = useState<CalculatorResult | undefined>();
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -33,12 +23,11 @@ function AppContent() {
     );
   }
 
-  const handleNavigate = (page: string, data?: OrderData) => {
+  const handleNavigate = (page: string) => {
     setCurrentPage(page);
-    if (data) setOrderData(data);
   };
 
-  const handleCalculatorResult = (data: OrderData) => {
+  const handleCalculatorResult = (data: CalculatorResult) => {
     setOrderData(data);
     setCurrentPage('order-form');
   };
