@@ -89,10 +89,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
             </div>
 
             <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow cursor-pointer" onClick={() => onNavigate('catalog')}>
-              <div className="h-48 bg-gradient-to-br from-gray-500 to-gray-600"></div>
+              <div className="h-48 bg-gradient-to-br from-stone-400 to-stone-600"></div>
               <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2">Плитка</h3>
-                <p className="text-gray-600">Декоративные решения для вашего участка</p>
+                <h3 className="text-xl font-semibold mb-2">Смеси</h3>
+                <p className="text-gray-600">Цемент и строительные смеси</p>
               </div>
             </div>
           </div>
