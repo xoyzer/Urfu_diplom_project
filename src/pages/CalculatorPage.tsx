@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calculator, Truck, MapPin, ShoppingCart, Plus, Trash2 } from 'lucide-react';
+import { Calculator, Truck, MapPin, ShoppingCart, Plus, Trash2, Search, Loader2, Info } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/database';
 
@@ -51,6 +51,54 @@ const TRANSPORT_OPTIONS: Transport[] = [
 
 const PER_KM_RATE = 100;
 
+const ORIGIN = {
+  address: 'Московская обл., Щёлковский р-н, д. Долгое Ледово, ул. Академическая, 5',
+  lat: 55.899,
+  lon: 37.949,
+};
+
+const DELIVERY_REGIONS = [
+  'Москва',
+  'Московская область',
+  'Тверская область',
+  'Тульская область',
+  'Владимирская область',
+  'Ярославская область',
+  'Калужская область',
+];
+
+interface Geocoded {
+  lat: number;
+  lon: number;
+  displayName: string;
+}
+
+async function geocodeAddress(address: string): Promise<Geocoded | null> {
+  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ru&q=${encodeURIComponent(address)}`;
+  const res = await fetch(url, { headers: { 'Accept-Language': 'ru' } });
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (!Array.isArray(data) || data.length === 0) return null;
+  return {
+    lat: parseFloat(data[0].lat),
+    lon: parseFloat(data[0].lon),
+    displayName: data[0].display_name,
+  };
+}
+
+async function routeDistanceKm(
+  origin: { lat: number; lon: number },
+  dest: { lat: number; lon: number }
+): Promise<number | null> {
+  const url = `https://router.project-osrm.org/route/v1/driving/${origin.lon},${origin.lat};${dest.lon},${dest.lat}?overview=false`;
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  const data = await res.json();
+  const meters = data?.routes?.[0]?.distance;
+  if (typeof meters !== 'number') return null;
+  return Math.round(meters / 1000);
+}
+
 function pickTransport(totalWeightKg: number): Transport {
   for (const t of TRANSPORT_OPTIONS) {
     if (totalWeightKg <= t.capacityKg) return t;
@@ -65,6 +113,10 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
   const [newQuantity, setNewQuantity] = useState<number>(0);
   const [distance, setDistance] = useState<number>(0);
   const [isPickup, setIsPickup] = useState<boolean>(false);
+  const [destAddress, setDestAddress] = useState<string>('');
+  const [resolvedAddress, setResolvedAddress] = useState<string>('');
+  const [geocoding, setGeocoding] = useState<boolean>(false);
+  const [geocodeError, setGeocodeError] = useState<string>('');
 
   useEffect(() => {
     loadProducts();
@@ -145,6 +197,32 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
     ? 0
     : selectedTransport.baseCost + distance * PER_KM_RATE;
   const totalCost = productCost + deliveryCost;
+
+  const handleCalculateDistance = async () => {
+    if (!destAddress.trim()) return;
+    setGeocoding(true);
+    setGeocodeError('');
+    setResolvedAddress('');
+    try {
+      const geo = await geocodeAddress(destAddress.trim());
+      if (!geo) {
+        setGeocodeError('Не удалось найти адрес. Попробуйте уточнить (город, улица, дом).');
+        return;
+      }
+      setResolvedAddress(geo.displayName);
+      const km = await routeDistanceKm({ lat: ORIGIN.lat, lon: ORIGIN.lon }, { lat: geo.lat, lon: geo.lon });
+      if (km == null) {
+        setGeocodeError('Не удалось рассчитать расстояние. Введите значение вручную.');
+        return;
+      }
+      setDistance(km);
+    } catch (error) {
+      console.error(error);
+      setGeocodeError('Ошибка при расчёте. Попробуйте позже или введите расстояние вручную.');
+    } finally {
+      setGeocoding(false);
+    }
+  };
 
   const handleOrder = () => {
     if (items.length === 0) return;
@@ -281,20 +359,82 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
             </div>
 
             {!isPickup && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  <MapPin className="inline h-4 w-4 mr-1" />
-                  Расстояние до места доставки (км)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={distance || ''}
-                  onChange={(e) => setDistance(parseFloat(e.target.value) || 0)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  placeholder="Введите расстояние в км"
-                />
+              <div className="space-y-4">
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <Info className="h-5 w-5 text-slate-500 mt-0.5 mr-2 flex-shrink-0" />
+                    <div className="text-sm text-slate-700">
+                      <div className="mb-1">
+                        <span className="font-semibold">Доставка с адреса:</span> {ORIGIN.address}
+                      </div>
+                      <div>
+                        <span className="font-semibold">Регионы доставки:</span>{' '}
+                        {DELIVERY_REGIONS.join(', ')}. Дальше — по согласованию.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <MapPin className="inline h-4 w-4 mr-1" />
+                    Адрес доставки
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={destAddress}
+                      onChange={(e) => setDestAddress(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleCalculateDistance();
+                        }
+                      }}
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="Например: Москва, Тверская улица, 1"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCalculateDistance}
+                      disabled={geocoding || !destAddress.trim()}
+                      className="flex items-center space-x-2 bg-orange-600 text-white px-4 py-3 rounded-lg hover:bg-orange-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold whitespace-nowrap"
+                    >
+                      {geocoding ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <Search className="h-5 w-5" />
+                      )}
+                      <span>Рассчитать</span>
+                    </button>
+                  </div>
+                  {resolvedAddress && (
+                    <p className="text-xs text-green-700 mt-2">
+                      Найдено: {resolvedAddress}
+                    </p>
+                  )}
+                  {geocodeError && (
+                    <p className="text-xs text-red-600 mt-2">{geocodeError}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Расстояние (км)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={distance || ''}
+                    onChange={(e) => setDistance(parseFloat(e.target.value) || 0)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Введите вручную или используйте автоматический расчёт"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Расстояние можно отредактировать вручную, если автоматический расчёт отличается от реального маршрута.
+                  </p>
+                </div>
               </div>
             )}
 
