@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LayoutDashboard, ShoppingCart, Users, Truck, Package, BarChart3, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Users, Truck, Package, BarChart3 } from 'lucide-react';
 import { OrdersSection } from './OrdersSection';
 import { CustomersSection } from './CustomersSection';
 import { VehiclesSection } from './VehiclesSection';
@@ -8,11 +8,7 @@ import { AnalyticsSection } from './AnalyticsSection';
 
 type Section = 'orders' | 'customers' | 'vehicles' | 'inventory' | 'analytics';
 
-interface AdminDashboardProps {
-  onNavigate?: (page: string) => void;
-}
-
-export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
+export function AdminDashboard() {
   const [activeSection, setActiveSection] = useState<Section>('orders');
 
   const menuItems = [
@@ -33,13 +29,6 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
               <h2 className="text-xl font-bold text-gray-900">CRM Панель</h2>
             </div>
           </div>
-          <button
-            onClick={() => onNavigate?.('home')}
-            className="w-full flex items-center space-x-3 px-4 py-3 m-4 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span>На портал</span>
-          </button>
           <nav className="p-4">
             <ul className="space-y-2">
               {menuItems.map((item) => (
