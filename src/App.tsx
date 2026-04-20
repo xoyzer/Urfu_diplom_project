@@ -56,7 +56,7 @@ function AppContent() {
       {currentPage === 'contacts' && <ContactsPage />}
       {currentPage === 'order-form' && <OrderFormPage orderData={orderData} onNavigate={handleNavigate} />}
       {currentPage === 'login' && <LoginPage onNavigate={handleNavigate} />}
-      {currentPage === 'admin' && user ? <AdminDashboard /> : null}
+      {currentPage === 'admin' && user ? <AdminDashboard onNavigate={handleNavigate} /> : null}
 
       {currentPage === 'admin' && !user && <LoginPage onNavigate={handleNavigate} />}
     </div>
