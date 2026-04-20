@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Header } from './components/Header';
 import { HomePage } from './pages/HomePage';
@@ -10,10 +10,24 @@ import { OrderFormPage } from './pages/OrderFormPage';
 import { LoginPage } from './pages/LoginPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 
+const PAGE_STORAGE_KEY = 'paving_current_page';
+
 function AppContent() {
-  const [currentPage, setCurrentPage] = useState('home');
+  const [currentPage, setCurrentPage] = useState<string>(() => {
+    return localStorage.getItem(PAGE_STORAGE_KEY) || 'home';
+  });
   const [orderData, setOrderData] = useState<CalculatorResult | undefined>();
   const { user, loading } = useAuth();
+
+  useEffect(() => {
+    localStorage.setItem(PAGE_STORAGE_KEY, currentPage);
+  }, [currentPage]);
+
+  useEffect(() => {
+    if (currentPage === 'order-form' && !orderData) {
+      setCurrentPage('calculator');
+    }
+  }, [currentPage, orderData]);
 
   if (loading) {
     return (

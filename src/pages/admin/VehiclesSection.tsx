@@ -288,7 +288,14 @@ export function VehiclesSection() {
                 <Plus className="h-4 w-4" />
                 <span>Запланировать доставку</span>
               </button>
-              <Calendar className="h-5 w-5 text-gray-400" />
+              <button
+                type="button"
+                onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
+                title="Переключить на сегодняшнюю дату"
+                className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+              >
+                <Calendar className="h-5 w-5" />
+              </button>
               <input
                 type="date"
                 value={selectedDate}

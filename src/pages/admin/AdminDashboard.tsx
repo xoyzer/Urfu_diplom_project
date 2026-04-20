@@ -12,8 +12,18 @@ interface AdminDashboardProps {
   onNavigate?: (page: string) => void;
 }
 
+const ADMIN_SECTION_KEY = 'paving_admin_section';
+
 export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
-  const [activeSection, setActiveSection] = useState<Section>('orders');
+  const [activeSection, setActiveSection] = useState<Section>(() => {
+    const stored = localStorage.getItem(ADMIN_SECTION_KEY) as Section | null;
+    return stored || 'orders';
+  });
+
+  const changeSection = (section: Section) => {
+    setActiveSection(section);
+    localStorage.setItem(ADMIN_SECTION_KEY, section);
+  };
 
   const menuItems = [
     { id: 'orders' as Section, label: 'Заказы', icon: ShoppingCart },
@@ -45,7 +55,7 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
               {menuItems.map((item) => (
                 <li key={item.id}>
                   <button
-                    onClick={() => setActiveSection(item.id)}
+                    onClick={() => changeSection(item.id)}
                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                       activeSection === item.id
                         ? 'bg-orange-50 text-orange-600 font-semibold'

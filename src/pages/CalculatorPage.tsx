@@ -20,6 +20,7 @@ export interface CalculatorResult {
   productCost: number;
   deliveryCost: number;
   totalCost: number;
+  isPickup: boolean;
 }
 
 interface CalculatorPageProps {
@@ -63,6 +64,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
   const [selectedProductId, setSelectedProductId] = useState<string>('');
   const [newQuantity, setNewQuantity] = useState<number>(0);
   const [distance, setDistance] = useState<number>(0);
+  const [isPickup, setIsPickup] = useState<boolean>(false);
 
   useEffect(() => {
     loadProducts();
@@ -139,21 +141,22 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
   const totalWeight = items.reduce((sum, i) => sum + i.weight, 0);
   const productCost = items.reduce((sum, i) => sum + i.subtotal, 0);
   const selectedTransport = pickTransport(totalWeight);
-  const deliveryCost = items.length > 0
-    ? selectedTransport.baseCost + distance * PER_KM_RATE
-    : 0;
+  const deliveryCost = isPickup || items.length === 0
+    ? 0
+    : selectedTransport.baseCost + distance * PER_KM_RATE;
   const totalCost = productCost + deliveryCost;
 
   const handleOrder = () => {
     if (items.length === 0) return;
     onNavigate({
       items,
-      deliveryType: selectedTransport.label,
-      distance,
+      deliveryType: isPickup ? 'Самовывоз' : selectedTransport.label,
+      distance: isPickup ? 0 : distance,
       totalWeight,
       productCost,
       deliveryCost,
       totalCost,
+      isPickup,
     });
   };
 
@@ -264,23 +267,38 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
               </div>
             )}
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                <MapPin className="inline h-4 w-4 mr-1" />
-                Расстояние до места доставки (км)
-              </label>
+            <div className="flex items-center p-4 bg-gray-50 border border-gray-200 rounded-lg">
               <input
-                type="number"
-                min="0"
-                step="1"
-                value={distance || ''}
-                onChange={(e) => setDistance(parseFloat(e.target.value) || 0)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                placeholder="Введите расстояние в км"
+                id="pickup-checkbox"
+                type="checkbox"
+                checked={isPickup}
+                onChange={(e) => setIsPickup(e.target.checked)}
+                className="h-5 w-5 text-orange-600 rounded border-gray-300 focus:ring-orange-500"
               />
+              <label htmlFor="pickup-checkbox" className="ml-3 text-sm font-semibold text-gray-700 cursor-pointer">
+                Самовывоз (без доставки)
+              </label>
             </div>
 
-            {items.length > 0 && (
+            {!isPickup && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <MapPin className="inline h-4 w-4 mr-1" />
+                  Расстояние до места доставки (км)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={distance || ''}
+                  onChange={(e) => setDistance(parseFloat(e.target.value) || 0)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  placeholder="Введите расстояние в км"
+                />
+              </div>
+            )}
+
+            {!isPickup && items.length > 0 && (
               <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
                 <div className="flex items-center mb-3">
                   <Truck className="h-6 w-6 text-blue-600 mr-2" />

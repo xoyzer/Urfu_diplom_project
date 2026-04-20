@@ -33,7 +33,7 @@ export function OrderFormPage({ orderData, onNavigate }: OrderFormPageProps) {
           phone: formData.phone,
           email: formData.email,
           company_name: formData.company,
-          address: formData.address,
+          address: orderData.isPickup ? '' : formData.address,
           notes: formData.notes,
         })
         .select()
@@ -50,7 +50,7 @@ export function OrderFormPage({ orderData, onNavigate }: OrderFormPageProps) {
           total_amount: orderData.totalCost,
           delivery_cost: orderData.deliveryCost,
           delivery_type: orderData.deliveryType,
-          delivery_address: formData.address,
+          delivery_address: orderData.isPickup ? '' : formData.address,
           notes: formData.notes,
           source: 'website',
         })
@@ -214,19 +214,21 @@ export function OrderFormPage({ orderData, onNavigate }: OrderFormPageProps) {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Адрес доставки <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                placeholder="г. Москва, ул. Примерная, д. 123"
-              />
-            </div>
+            {!orderData?.isPickup && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Адрес доставки <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  placeholder="г. Москва, ул. Примерная, д. 123"
+                />
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
