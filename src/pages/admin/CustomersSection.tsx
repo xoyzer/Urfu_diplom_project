@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, Mail, Phone, Trash2, AlertCircle } from 'lucide-react';
+import { Search, Plus, Eye, Mail, Phone, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { Modal } from '../../components/Modal';
-import { validatePhone, formatPhoneDisplay, validateEmail, validateName, validateAddress } from '../../lib/validators';
 import { Database } from '../../types/database';
 
 type Customer = Database['public']['Tables']['customers']['Row'];
@@ -21,8 +20,6 @@ export function CustomersSection() {
     notes: ''
   });
   const [submitting, setSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     loadCustomers();
@@ -44,54 +41,15 @@ export function CustomersSection() {
     }
   }
 
-  function validateForm(): boolean {
-    const newErrors: Record<string, string> = {};
-
-    const nameValidation = validateName(formData.name);
-    if (!nameValidation.valid) newErrors.name = nameValidation.error || '';
-
-    if (formData.phone) {
-      const phoneValidation = validatePhone(formData.phone);
-      if (!phoneValidation.valid) newErrors.phone = phoneValidation.error || '';
-    } else {
-      newErrors.phone = 'Телефон не может быть пустым';
-    }
-
-    if (formData.email) {
-      const emailValidation = validateEmail(formData.email);
-      if (!emailValidation.valid) newErrors.email = emailValidation.error || '';
-    }
-
-    if (formData.address && !validateAddress(formData.address).valid) {
-      newErrors.address = 'Некорректный адрес';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }
-
   async function handleAddCustomer(e: React.FormEvent) {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
     setSubmitting(true);
     try {
-      const phoneValidation = validatePhone(formData.phone);
-      const dataToInsert = {
-        ...formData,
-        phone: phoneValidation.formatted
-      };
-
       const { error } = await supabase
         .from('customers')
-        .insert([dataToInsert]);
+        .insert([formData]);
       if (error) throw error;
       setFormData({ name: '', phone: '', email: '', company_name: '', address: '', notes: '' });
-      setErrors({});
-      setTouched({});
       setShowModal(false);
       loadCustomers();
     } catch (error) {
@@ -99,36 +57,6 @@ export function CustomersSection() {
       alert('Ошибка при добавлении клиента');
     } finally {
       setSubmitting(false);
-    }
-  }
-
-  function handlePhoneChange(value: string) {
-    const validation = validatePhone(value);
-    setFormData({...formData, phone: validation.formatted});
-    setTouched({...touched, phone: true});
-
-    if (!validation.valid) {
-      setErrors({...errors, phone: validation.error || ''});
-    } else {
-      const newErrors = {...errors};
-      delete newErrors.phone;
-      setErrors(newErrors);
-    }
-  }
-
-  function handleEmailChange(value: string) {
-    setFormData({...formData, email: value});
-    setTouched({...touched, email: true});
-
-    if (value) {
-      const validation = validateEmail(value);
-      if (!validation.valid) {
-        setErrors({...errors, email: validation.error || ''});
-      } else {
-        const newErrors = {...errors};
-        delete newErrors.email;
-        setErrors(newErrors);
-      }
     }
   }
 
@@ -170,11 +98,7 @@ export function CustomersSection() {
         </button>
       </div>
 
-      <Modal isOpen={showModal} title="Добавить нового клиента" onClose={() => {
-        setShowModal(false);
-        setErrors({});
-        setTouched({});
-      }}>
+      <Modal isOpen={showModal} title="Добавить нового клиента" onClose={() => setShowModal(false)}>
         <form onSubmit={handleAddCustomer} className="space-y-4">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Имя <span className="text-red-500">*</span></label>
@@ -182,67 +106,29 @@ export function CustomersSection() {
               type="text"
               required
               value={formData.name}
-              onChange={(e) => {
-                setFormData({...formData, name: e.target.value});
-                setTouched({...touched, name: true});
-              }}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 ${
-                touched.name && errors.name ? 'border-red-500' : 'border-gray-300'
-              }`}
+              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
             />
-            {touched.name && errors.name && (
-              <div className="flex items-center space-x-1 mt-1 text-sm text-red-600">
-                <AlertCircle className="h-4 w-4" />
-                <span>{errors.name}</span>
-              </div>
-            )}
           </div>
-
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Телефон <span className="text-red-500">*</span></label>
             <input
               type="tel"
               required
               value={formData.phone}
-              onChange={(e) => handlePhoneChange(e.target.value)}
-              placeholder="8 (XXX) XXX-XX-XX"
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 ${
-                touched.phone && errors.phone ? 'border-red-500' : 'border-gray-300'
-              }`}
+              onChange={(e) => setFormData({...formData, phone: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
             />
-            <div className="flex items-center justify-between mt-1">
-              {touched.phone && errors.phone ? (
-                <div className="flex items-center space-x-1 text-sm text-red-600">
-                  <AlertCircle className="h-4 w-4" />
-                  <span>{errors.phone}</span>
-                </div>
-              ) : formData.phone ? (
-                <p className="text-xs text-gray-500">
-                  {formatPhoneDisplay(formData.phone)}
-                </p>
-              ) : null}
-            </div>
           </div>
-
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
             <input
-              type="text"
+              type="email"
               value={formData.email}
-              onChange={(e) => handleEmailChange(e.target.value)}
-              placeholder="user@domain.com"
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 ${
-                touched.email && errors.email ? 'border-red-500' : 'border-gray-300'
-              }`}
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
             />
-            {touched.email && errors.email && (
-              <div className="flex items-center space-x-1 mt-1 text-sm text-red-600">
-                <AlertCircle className="h-4 w-4" />
-                <span>{errors.email}</span>
-              </div>
-            )}
           </div>
-
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Компания</label>
             <input
@@ -252,7 +138,6 @@ export function CustomersSection() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
             />
           </div>
-
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Адрес</label>
             <input
@@ -262,7 +147,6 @@ export function CustomersSection() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
             />
           </div>
-
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Примечание</label>
             <textarea
@@ -272,10 +156,9 @@ export function CustomersSection() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
             />
           </div>
-
           <button
             type="submit"
-            disabled={submitting || Object.keys(errors).length > 0}
+            disabled={submitting}
             className="w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 disabled:bg-gray-300 transition-colors font-semibold"
           >
             {submitting ? 'Добавление...' : 'Добавить клиента'}
@@ -316,7 +199,7 @@ export function CustomersSection() {
             <div className="space-y-2">
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <Phone className="h-4 w-4" />
-                <span>{formatPhoneDisplay(customer.phone)}</span>
+                <span>{customer.phone}</span>
               </div>
               {customer.email && (
                 <div className="flex items-center space-x-2 text-sm text-gray-600">
