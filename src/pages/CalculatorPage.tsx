@@ -27,12 +27,12 @@ interface CalculatorPageProps {
   onNavigate: (result: CalculatorResult) => void;
 }
 
-function getWeightPerUnit(product: Product): number {
+function getWeightPerSqm(product: Product): number {
   const name = product.name.toLowerCase();
-  if (product.category === 'Бордюры') return 10;
-  if (product.category === 'Смеси') return 50;
   if (name.includes('40мм')) return 100;
   if (name.includes('60мм')) return 125;
+  if (product.category === 'Бордюры') return 80;
+  if (product.category === 'Смеси') return 50;
   return 100;
 }
 
@@ -98,7 +98,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
               ...i,
               quantity: i.quantity + newQuantity,
               subtotal: (i.quantity + newQuantity) * product.price_per_sqm,
-              weight: (i.quantity + newQuantity) * getWeightPerUnit(product),
+              weight: (i.quantity + newQuantity) * getWeightPerSqm(product),
             }
           : i
       ));
@@ -109,7 +109,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
           product,
           quantity: newQuantity,
           subtotal: newQuantity * product.price_per_sqm,
-          weight: newQuantity * getWeightPerUnit(product),
+          weight: newQuantity * getWeightPerSqm(product),
         },
       ]);
     }
@@ -132,7 +132,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
             ...i,
             quantity,
             subtotal: quantity * i.product.price_per_sqm,
-            weight: quantity * getWeightPerUnit(i.product),
+            weight: quantity * getWeightPerSqm(i.product),
           }
         : i
     ));
@@ -187,7 +187,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
                       <optgroup key={cat} label={cat}>
                         {list.map(p => (
                           <option key={p.id} value={p.id}>
-                            {p.name} — {p.price_per_sqm} ₽/{p.unit}
+                            {p.name} — {p.price_per_sqm} ₽/м²
                           </option>
                         ))}
                       </optgroup>
@@ -196,15 +196,12 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
                 </div>
                 <div className="md:col-span-3">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Количество ({(() => {
-                      const p = products.find(p => p.id === selectedProductId);
-                      return p ? p.unit : 'шт/м²';
-                    })()})
+                    Количество (м²)
                   </label>
                   <input
                     type="number"
                     min="0"
-                    step={products.find(p => p.id === selectedProductId)?.unit === 'шт' ? '1' : '0.1'}
+                    step="0.1"
                     value={newQuantity || ''}
                     onChange={(e) => setNewQuantity(parseFloat(e.target.value) || 0)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
@@ -238,22 +235,22 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
                       <div className="flex-1">
                         <div className="font-semibold text-gray-900">{item.product.name}</div>
                         <div className="text-sm text-gray-600">
-                          {item.product.category} • {item.product.price_per_sqm} ₽/{item.product.unit} •{' '}
-                          {getWeightPerUnit(item.product)} кг/{item.product.unit}
+                          {item.product.category} • {item.product.price_per_sqm} ₽/м² •{' '}
+                          {getWeightPerSqm(item.product)} кг/м²
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <input
                           type="number"
                           min="0"
-                          step={item.product.unit === 'шт' ? '1' : '0.1'}
+                          step="0.1"
                           value={item.quantity}
                           onChange={(e) =>
                             updateItemQuantity(item.product.id, parseFloat(e.target.value) || 0)
                           }
                           className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-center"
                         />
-                        <span className="text-sm text-gray-600">{item.product.unit}</span>
+                        <span className="text-sm text-gray-600">м²</span>
                       </div>
                       <div className="w-28 text-right font-semibold text-gray-900">
                         {item.subtotal.toLocaleString('ru-RU')} ₽
