@@ -52,7 +52,7 @@ export function CatalogPage({ onNavigate }: CatalogPageProps) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Загрузка каталога...</p>
         </div>
       </div>
@@ -75,7 +75,7 @@ export function CatalogPage({ onNavigate }: CatalogPageProps) {
               placeholder="Поиск по названию или описанию..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
             />
           </div>
 
@@ -84,7 +84,7 @@ export function CatalogPage({ onNavigate }: CatalogPageProps) {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
             >
               <option value="all">Все категории</option>
               {categories.map(category => (
@@ -110,13 +110,13 @@ export function CatalogPage({ onNavigate }: CatalogPageProps) {
                   )}
                 </div>
                 <div className="p-6">
-                  <div className="text-sm text-orange-600 font-semibold mb-2">{product.category}</div>
+                  <div className="text-sm text-amber-600 font-semibold mb-2">{product.category}</div>
                   <h3 className="text-xl font-semibold mb-2">{product.name}</h3>
                   <p className="text-gray-600 mb-4 line-clamp-2">{product.description}</p>
 
                   <div className="flex justify-between items-center mb-4">
                     <div>
-                      <div className="text-2xl font-bold text-orange-600">{product.price_per_sqm} ₽</div>
+                      <div className="text-2xl font-bold text-amber-600">{product.price_per_sqm} ₽</div>
                       <div className="text-sm text-gray-500">за м²</div>
                     </div>
                     <div className="text-right">
@@ -127,7 +127,7 @@ export function CatalogPage({ onNavigate }: CatalogPageProps) {
 
                   <button
                     onClick={() => onNavigate('calculator')}
-                    className="w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 transition-colors"
+                    className="w-full bg-amber-600 text-white py-2 rounded-lg hover:bg-amber-700 transition-colors"
                   >
                     Рассчитать стоимость
                   </button>

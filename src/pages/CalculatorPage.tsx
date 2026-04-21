@@ -165,7 +165,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-lg p-8">
           <div className="flex items-center mb-8">
-            <Calculator className="h-8 w-8 text-orange-600 mr-3" />
+            <Calculator className="h-8 w-8 text-amber-600 mr-3" />
             <h1 className="text-3xl font-bold text-gray-900">Калькулятор стоимости</h1>
           </div>
 
@@ -180,7 +180,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
                   <select
                     value={selectedProductId}
                     onChange={(e) => setSelectedProductId(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                   >
                     <option value="">-- Выберите продукт --</option>
                     {Object.entries(productsByCategory).map(([cat, list]) => (
@@ -204,7 +204,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
                     step="0.1"
                     value={newQuantity || ''}
                     onChange={(e) => setNewQuantity(parseFloat(e.target.value) || 0)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                     placeholder="0"
                   />
                 </div>
@@ -212,7 +212,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
                   <button
                     onClick={addItem}
                     disabled={!selectedProductId || newQuantity <= 0}
-                    className="w-full flex items-center justify-center space-x-2 bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold"
+                    className="w-full flex items-center justify-center space-x-2 bg-amber-600 text-white py-3 rounded-lg hover:bg-amber-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold"
                   >
                     <Plus className="h-5 w-5" />
                     <span>Добавить</span>
@@ -273,7 +273,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
                 type="checkbox"
                 checked={isPickup}
                 onChange={(e) => setIsPickup(e.target.checked)}
-                className="h-5 w-5 text-orange-600 rounded border-gray-300 focus:ring-orange-500"
+                className="h-5 w-5 text-amber-600 rounded border-gray-300 focus:ring-amber-500"
               />
               <label htmlFor="pickup-checkbox" className="ml-3 text-sm font-semibold text-gray-700 cursor-pointer">
                 Самовывоз (без доставки)
@@ -292,7 +292,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
                   step="1"
                   value={distance || ''}
                   onChange={(e) => setDistance(parseFloat(e.target.value) || 0)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                   placeholder="Введите расстояние в км"
                 />
               </div>
@@ -320,7 +320,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
               </div>
             )}
 
-            <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-6 rounded-lg border-2 border-orange-200">
+            <div className="bg-gradient-to-r from-amber-50 to-amber-100 p-6 rounded-lg border-2 border-amber-200">
               <h3 className="text-lg font-semibold mb-4 text-gray-900">Расчет стоимости</h3>
               <div className="space-y-2">
                 <div className="flex justify-between text-gray-700">
@@ -331,7 +331,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
                   <span>Стоимость доставки:</span>
                   <span className="font-semibold">{deliveryCost.toLocaleString('ru-RU')} ₽</span>
                 </div>
-                <div className="border-t-2 border-orange-300 pt-2 mt-2 flex justify-between text-xl font-bold text-orange-700">
+                <div className="border-t-2 border-amber-300 pt-2 mt-2 flex justify-between text-xl font-bold text-amber-700">
                   <span>Итого:</span>
                   <span>{totalCost.toLocaleString('ru-RU')} ₽</span>
                 </div>
@@ -341,7 +341,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
             <button
               onClick={handleOrder}
               disabled={items.length === 0}
-              className="w-full flex items-center justify-center space-x-2 bg-orange-600 text-white py-4 rounded-lg hover:bg-orange-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed text-lg font-semibold"
+              className="w-full flex items-center justify-center space-x-2 bg-amber-600 text-white py-4 rounded-lg hover:bg-amber-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed text-lg font-semibold"
             >
               <ShoppingCart className="h-5 w-5" />
               <span>Оформить заявку</span>

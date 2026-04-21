@@ -125,7 +125,7 @@ export function InventorySection() {
         </div>
         <button
           onClick={() => setShowAddReceiving(true)}
-          className="flex items-center space-x-2 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors">
+          className="flex items-center space-x-2 bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 transition-colors">
           <Plus className="h-5 w-5" />
           <span>Добавить приход</span>
         </button>
@@ -139,7 +139,7 @@ export function InventorySection() {
               required
               value={formData.product_id}
               onChange={(e) => setFormData({...formData, product_id: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
             >
               <option value="">Выберите товар</option>
               {products.map(p => (
@@ -155,7 +155,7 @@ export function InventorySection() {
               step="0.1"
               value={formData.quantity}
               onChange={(e) => setFormData({...formData, quantity: parseFloat(e.target.value)})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
             />
           </div>
           <div>
@@ -164,14 +164,14 @@ export function InventorySection() {
               value={formData.notes}
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
               rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
               placeholder="Накладная №, поставщик, и т.д."
             />
           </div>
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 disabled:bg-gray-300 transition-colors font-semibold"
+            className="w-full bg-amber-600 text-white py-2 rounded-lg hover:bg-amber-700 disabled:bg-gray-300 transition-colors font-semibold"
           >
             {submitting ? 'Добавление...' : 'Добавить приход'}
           </button>
@@ -287,8 +287,8 @@ export function InventorySection() {
             <div className="text-3xl font-bold text-yellow-600">{lowStockProducts.length}</div>
             <div className="text-sm text-gray-600 mt-1">Низкий остаток</div>
           </div>
-          <div className="text-center p-4 bg-orange-50 rounded-lg">
-            <div className="text-3xl font-bold text-orange-600">
+          <div className="text-center p-4 bg-amber-50 rounded-lg">
+            <div className="text-3xl font-bold text-amber-600">
               {products.reduce((sum, p) => sum + (p.stock_quantity * p.price_per_sqm), 0).toLocaleString('ru-RU', { maximumFractionDigits: 0 })}
             </div>
             <div className="text-sm text-gray-600 mt-1">Стоимость склада (₽)</div>

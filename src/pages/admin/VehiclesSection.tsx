@@ -178,7 +178,7 @@ export function VehiclesSection() {
         </div>
         <button
           onClick={() => setShowAddVehicle(true)}
-          className="flex items-center space-x-2 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors">
+          className="flex items-center space-x-2 bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 transition-colors">
           <Plus className="h-5 w-5" />
           <span>Добавить транспорт</span>
         </button>
@@ -193,7 +193,7 @@ export function VehiclesSection() {
               required
               value={vehicleForm.name}
               onChange={(e) => setVehicleForm({...vehicleForm, name: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
               placeholder="Манипулятор №1"
             />
           </div>
@@ -202,7 +202,7 @@ export function VehiclesSection() {
             <select
               value={vehicleForm.type}
               onChange={(e) => setVehicleForm({...vehicleForm, type: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
             >
               <option value="манипулятор">Манипулятор</option>
               <option value="фура">Фура</option>
@@ -216,7 +216,7 @@ export function VehiclesSection() {
               step="0.1"
               value={vehicleForm.capacity}
               onChange={(e) => setVehicleForm({...vehicleForm, capacity: parseFloat(e.target.value)})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
             />
           </div>
           <div>
@@ -226,7 +226,7 @@ export function VehiclesSection() {
               required
               value={vehicleForm.license_plate}
               onChange={(e) => setVehicleForm({...vehicleForm, license_plate: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
               placeholder="А001АА77"
             />
           </div>
@@ -242,7 +242,7 @@ export function VehiclesSection() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 disabled:bg-gray-300 transition-colors font-semibold"
+            className="w-full bg-amber-600 text-white py-2 rounded-lg hover:bg-amber-700 disabled:bg-gray-300 transition-colors font-semibold"
           >
             {submitting ? 'Добавление...' : 'Добавить транспорт'}
           </button>
@@ -254,7 +254,7 @@ export function VehiclesSection() {
           <h2 className="text-xl font-semibold mb-4">Автопарк</h2>
           <div className="space-y-4">
             {vehicles.map(vehicle => (
-              <div key={vehicle.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-orange-300 transition-colors">
+              <div key={vehicle.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-amber-300 transition-colors">
                 <div className="flex-1">
                   <div className="flex items-center space-x-3">
                     <h3 className="font-semibold text-gray-900">{vehicle.name}</h3>
@@ -284,7 +284,7 @@ export function VehiclesSection() {
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setShowAddDelivery(true)}
-                className="flex items-center space-x-1 bg-orange-600 text-white px-3 py-2 rounded-lg hover:bg-orange-700 transition-colors text-sm">
+                className="flex items-center space-x-1 bg-amber-600 text-white px-3 py-2 rounded-lg hover:bg-amber-700 transition-colors text-sm">
                 <Plus className="h-4 w-4" />
                 <span>Запланировать доставку</span>
               </button>
@@ -292,7 +292,7 @@ export function VehiclesSection() {
                 type="button"
                 onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
                 title="Переключить на сегодняшнюю дату"
-                className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
               >
                 <Calendar className="h-5 w-5" />
               </button>
@@ -300,7 +300,7 @@ export function VehiclesSection() {
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -313,7 +313,7 @@ export function VehiclesSection() {
                   required
                   value={deliveryForm.order_id}
                   onChange={(e) => setDeliveryForm({...deliveryForm, order_id: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
                 >
                   <option value="">Выберите заказ</option>
                   {orders.map(o => (
@@ -329,7 +329,7 @@ export function VehiclesSection() {
                   required
                   value={deliveryForm.vehicle_id}
                   onChange={(e) => setDeliveryForm({...deliveryForm, vehicle_id: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
                 >
                   <option value="">Выберите транспорт</option>
                   {vehicles.filter(v => v.is_active).map(v => (
@@ -344,7 +344,7 @@ export function VehiclesSection() {
                   required
                   value={deliveryForm.scheduled_date}
                   onChange={(e) => setDeliveryForm({...deliveryForm, scheduled_date: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
                 />
               </div>
               <div>
@@ -353,14 +353,14 @@ export function VehiclesSection() {
                   value={deliveryForm.driver_notes}
                   onChange={(e) => setDeliveryForm({...deliveryForm, driver_notes: e.target.value})}
                   rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
                   placeholder="Время доставки, контакты, и т.д."
                 />
               </div>
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 disabled:bg-gray-300 transition-colors font-semibold"
+                className="w-full bg-amber-600 text-white py-2 rounded-lg hover:bg-amber-700 disabled:bg-gray-300 transition-colors font-semibold"
               >
                 {submitting ? 'Планирование...' : 'Запланировать доставку'}
               </button>
@@ -415,8 +415,8 @@ export function VehiclesSection() {
       <div className="bg-white rounded-lg shadow-lg p-6">
         <h2 className="text-xl font-semibold mb-4">Статистика использования транспорта</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center p-4 bg-orange-50 rounded-lg">
-            <div className="text-3xl font-bold text-orange-600">{vehicles.filter(v => v.is_active).length}</div>
+          <div className="text-center p-4 bg-amber-50 rounded-lg">
+            <div className="text-3xl font-bold text-amber-600">{vehicles.filter(v => v.is_active).length}</div>
             <div className="text-sm text-gray-600 mt-1">Активных единиц</div>
           </div>
           <div className="text-center p-4 bg-blue-50 rounded-lg">

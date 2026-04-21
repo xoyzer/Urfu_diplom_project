@@ -164,7 +164,7 @@ export function CustomersSection() {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center space-x-2 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors">
+          className="flex items-center space-x-2 bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 transition-colors">
           <Plus className="h-5 w-5" />
           <span>Добавить клиента</span>
         </button>
@@ -186,7 +186,7 @@ export function CustomersSection() {
                 setFormData({...formData, name: e.target.value});
                 setTouched({...touched, name: true});
               }}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 ${
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 ${
                 touched.name && errors.name ? 'border-red-500' : 'border-gray-300'
               }`}
             />
@@ -206,7 +206,7 @@ export function CustomersSection() {
               value={formData.phone}
               onChange={(e) => handlePhoneChange(e.target.value)}
               placeholder="8 (XXX) XXX-XX-XX"
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 ${
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 ${
                 touched.phone && errors.phone ? 'border-red-500' : 'border-gray-300'
               }`}
             />
@@ -231,7 +231,7 @@ export function CustomersSection() {
               value={formData.email}
               onChange={(e) => handleEmailChange(e.target.value)}
               placeholder="user@domain.com"
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 ${
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 ${
                 touched.email && errors.email ? 'border-red-500' : 'border-gray-300'
               }`}
             />
@@ -249,7 +249,7 @@ export function CustomersSection() {
               type="text"
               value={formData.company_name}
               onChange={(e) => setFormData({...formData, company_name: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
             />
           </div>
 
@@ -259,7 +259,7 @@ export function CustomersSection() {
               type="text"
               value={formData.address}
               onChange={(e) => setFormData({...formData, address: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
             />
           </div>
 
@@ -269,14 +269,14 @@ export function CustomersSection() {
               value={formData.notes}
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
               rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
             />
           </div>
 
           <button
             type="submit"
             disabled={submitting || Object.keys(errors).length > 0}
-            className="w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 disabled:bg-gray-300 transition-colors font-semibold"
+            className="w-full bg-amber-600 text-white py-2 rounded-lg hover:bg-amber-700 disabled:bg-gray-300 transition-colors font-semibold"
           >
             {submitting ? 'Добавление...' : 'Добавить клиента'}
           </button>
@@ -291,7 +291,7 @@ export function CustomersSection() {
             placeholder="Поиск по имени, телефону, email или компании..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
           />
         </div>
       </div>

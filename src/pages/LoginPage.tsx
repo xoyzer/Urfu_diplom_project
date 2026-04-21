@@ -29,12 +29,12 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         <div className="bg-white rounded-lg shadow-2xl p-8">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 rounded-full mb-4">
-              <Package className="h-8 w-8 text-orange-600" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-4">
+              <Package className="h-8 w-8 text-amber-600" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Фабрика Плитки</h1>
             <p className="text-gray-600">CRM-система</p>
@@ -50,7 +50,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                 placeholder="manager@fabrikaplitki.ru"
               />
             </div>
@@ -64,7 +64,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                 placeholder="••••••••"
               />
             </div>
@@ -78,7 +78,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center space-x-2 bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold"
+              className="w-full flex items-center justify-center space-x-2 bg-amber-600 text-white py-3 rounded-lg hover:bg-amber-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold"
             >
               <LogIn className="h-5 w-5" />
               <span>{loading ? 'Вход...' : 'Войти в систему'}</span>
@@ -88,7 +88,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
           <div className="mt-6 text-center">
             <button
               onClick={() => onNavigate('home')}
-              className="text-orange-600 hover:text-orange-700 text-sm font-semibold"
+              className="text-amber-600 hover:text-amber-700 text-sm font-semibold"
             >
               Вернуться на главную
             </button>

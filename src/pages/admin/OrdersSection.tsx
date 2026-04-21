@@ -212,7 +212,7 @@ export function OrdersSection() {
         </div>
         <button
           onClick={() => setShowAddOrder(true)}
-          className="flex items-center space-x-2 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors"
+          className="flex items-center space-x-2 bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 transition-colors"
         >
           <Plus className="h-5 w-5" />
           <span>Добавить заказ (звонок)</span>
@@ -227,7 +227,7 @@ export function OrdersSection() {
               required
               value={formData.customer_id}
               onChange={(e) => setFormData({...formData, customer_id: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
             >
               <option value="">Выберите клиента</option>
               {customers.map(c => (
@@ -241,7 +241,7 @@ export function OrdersSection() {
               required
               value={formData.product_id}
               onChange={(e) => setFormData({...formData, product_id: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
             >
               <option value="">Выберите товар</option>
               {products.map(p => (
@@ -257,7 +257,7 @@ export function OrdersSection() {
               step="0.1"
               value={formData.quantity}
               onChange={(e) => setFormData({...formData, quantity: parseFloat(e.target.value)})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
             />
           </div>
           <div>
@@ -265,7 +265,7 @@ export function OrdersSection() {
             <select
               value={formData.delivery_type}
               onChange={(e) => setFormData({...formData, delivery_type: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
             >
               <option value="манипулятор">Манипулятор</option>
               <option value="фура">Фура</option>
@@ -277,7 +277,7 @@ export function OrdersSection() {
               type="text"
               value={formData.delivery_address}
               onChange={(e) => setFormData({...formData, delivery_address: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
             />
           </div>
           <div>
@@ -285,7 +285,7 @@ export function OrdersSection() {
             <select
               value={formData.source}
               onChange={(e) => setFormData({...formData, source: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
             >
               <option value="phone">Телефон</option>
               <option value="website">Сайт</option>
@@ -294,7 +294,7 @@ export function OrdersSection() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 disabled:bg-gray-300 transition-colors font-semibold"
+            className="w-full bg-amber-600 text-white py-2 rounded-lg hover:bg-amber-700 disabled:bg-gray-300 transition-colors font-semibold"
           >
             {submitting ? 'Создание...' : 'Создать заказ'}
           </button>
@@ -306,7 +306,7 @@ export function OrdersSection() {
           onClick={() => setSelectedStatus('all')}
           className={`px-4 py-2 rounded-lg whitespace-nowrap ${
             selectedStatus === 'all'
-              ? 'bg-orange-600 text-white'
+              ? 'bg-amber-600 text-white'
               : 'bg-white text-gray-700 hover:bg-gray-50'
           }`}
         >
@@ -318,7 +318,7 @@ export function OrdersSection() {
             onClick={() => setSelectedStatus(status)}
             className={`px-4 py-2 rounded-lg whitespace-nowrap ${
               selectedStatus === status
-                ? 'bg-orange-600 text-white'
+                ? 'bg-amber-600 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -425,7 +425,7 @@ export function OrdersSection() {
               </div>
               <div>
                 <div className="text-gray-500">Итого</div>
-                <div className="font-bold text-lg text-orange-600">
+                <div className="font-bold text-lg text-amber-600">
                   {selectedOrder.total_amount.toLocaleString('ru-RU')} ₽
                 </div>
               </div>
@@ -452,7 +452,7 @@ export function OrdersSection() {
             {filteredOrders.map(order => (
               <tr
                 key={order.id}
-                className="hover:bg-orange-50 cursor-pointer transition-colors"
+                className="hover:bg-amber-50 cursor-pointer transition-colors"
                 onClick={() => openOrderDetails(order)}
               >
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
