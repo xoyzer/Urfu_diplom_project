@@ -143,12 +143,12 @@ export function InventorySection() {
             >
               <option value="">Выберите товар</option>
               {products.map(p => (
-                <option key={p.id} value={p.id}>{p.name} (осталось: {p.stock_quantity} м²)</option>
+                <option key={p.id} value={p.id}>{p.name} (осталось: {p.stock_quantity} {p.unit})</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Количество м² <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Количество <span className="text-red-500">*</span></label>
             <input
               type="number"
               required
@@ -187,7 +187,7 @@ export function InventorySection() {
           <div className="space-y-1">
             {lowStockProducts.map(product => (
               <p key={product.id} className="text-sm text-yellow-800">
-                {product.name}: {product.stock_quantity} м²
+                {product.name}: {product.stock_quantity} {product.unit}
               </p>
             ))}
           </div>
@@ -210,10 +210,10 @@ export function InventorySection() {
                     product.stock_quantity < 100 ? 'text-yellow-600' :
                     'text-green-600'
                   }`}>
-                    {product.stock_quantity} м²
+                    {product.stock_quantity} {product.unit}
                   </div>
                   <div className="text-xs text-gray-500">
-                    {product.price_per_sqm} ₽/м²
+                    {product.price_per_sqm} ₽/{product.unit}
                   </div>
                 </div>
               </div>
@@ -248,7 +248,7 @@ export function InventorySection() {
                       <div className={`text-lg font-bold ${
                         transaction.transaction_type === 'incoming' ? 'text-green-600' : 'text-red-600'
                       }`}>
-                        {transaction.quantity > 0 ? '+' : ''}{transaction.quantity} м²
+                        {transaction.quantity > 0 ? '+' : ''}{transaction.quantity} {transaction.product?.unit || ''}
                       </div>
                       <button
                         onClick={() => deleteTransaction(transaction.id)}
@@ -281,7 +281,7 @@ export function InventorySection() {
             <div className="text-3xl font-bold text-green-600">
               {products.reduce((sum, p) => sum + p.stock_quantity, 0).toFixed(0)}
             </div>
-            <div className="text-sm text-gray-600 mt-1">Общий остаток (м²)</div>
+            <div className="text-sm text-gray-600 mt-1">Общий остаток (ед.)</div>
           </div>
           <div className="text-center p-4 bg-yellow-50 rounded-lg">
             <div className="text-3xl font-bold text-yellow-600">{lowStockProducts.length}</div>
