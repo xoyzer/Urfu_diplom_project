@@ -32,7 +32,7 @@ BEGIN
   -- Insert vehicles if they don't exist
   INSERT INTO vehicles (name, type, capacity, license_plate, is_active)
   VALUES
-    ('Манипулятор 5т', 'Манипулятор', 5.5, 'МОС-111', true),
+    ('Манипулятор 5т', 'Манипулятор', 5.5, 'МОС-001', true),
     ('Манипулятор 8т', 'Манипулятор', 8, 'МОС-002', true),
     ('Манипулятор 10т', 'Манипулятор', 11, 'МОС-003', true),
     ('Фура', 'Фура', 25, 'ФУР-001', true)
