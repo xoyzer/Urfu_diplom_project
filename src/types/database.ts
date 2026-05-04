@@ -20,7 +20,6 @@ export interface Database {
           characteristics: Json
           stock_quantity: number
           is_active: boolean
-          unit: string
           created_at: string
           updated_at: string
         }
@@ -34,7 +33,6 @@ export interface Database {
           characteristics?: Json
           stock_quantity?: number
           is_active?: boolean
-          unit?: string
           created_at?: string
           updated_at?: string
         }
@@ -48,7 +46,6 @@ export interface Database {
           characteristics?: Json
           stock_quantity?: number
           is_active?: boolean
-          unit?: string
           created_at?: string
           updated_at?: string
         }
