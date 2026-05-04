@@ -20,18 +20,19 @@ export interface CalculatorResult {
   productCost: number;
   deliveryCost: number;
   totalCost: number;
+  isPickup: boolean;
 }
 
 interface CalculatorPageProps {
   onNavigate: (result: CalculatorResult) => void;
 }
 
-function getWeightPerSqm(product: Product): number {
+function getWeightPerUnit(product: Product): number {
   const name = product.name.toLowerCase();
+  if (product.category === 'Бордюры') return 10;
+  if (product.category === 'Смеси') return 50;
   if (name.includes('40мм')) return 100;
   if (name.includes('60мм')) return 125;
-  if (product.category === 'Бордюры') return 80;
-  if (product.category === 'Смеси') return 50;
   return 100;
 }
 
@@ -63,6 +64,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
   const [selectedProductId, setSelectedProductId] = useState<string>('');
   const [newQuantity, setNewQuantity] = useState<number>(0);
   const [distance, setDistance] = useState<number>(0);
+  const [isPickup, setIsPickup] = useState<boolean>(false);
 
   useEffect(() => {
     loadProducts();
@@ -96,7 +98,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
               ...i,
               quantity: i.quantity + newQuantity,
               subtotal: (i.quantity + newQuantity) * product.price_per_sqm,
-              weight: (i.quantity + newQuantity) * getWeightPerSqm(product),
+              weight: (i.quantity + newQuantity) * getWeightPerUnit(product),
             }
           : i
       ));
@@ -107,7 +109,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
           product,
           quantity: newQuantity,
           subtotal: newQuantity * product.price_per_sqm,
-          weight: newQuantity * getWeightPerSqm(product),
+          weight: newQuantity * getWeightPerUnit(product),
         },
       ]);
     }
@@ -130,7 +132,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
             ...i,
             quantity,
             subtotal: quantity * i.product.price_per_sqm,
-            weight: quantity * getWeightPerSqm(i.product),
+            weight: quantity * getWeightPerUnit(i.product),
           }
         : i
     ));
@@ -139,21 +141,22 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
   const totalWeight = items.reduce((sum, i) => sum + i.weight, 0);
   const productCost = items.reduce((sum, i) => sum + i.subtotal, 0);
   const selectedTransport = pickTransport(totalWeight);
-  const deliveryCost = items.length > 0
-    ? selectedTransport.baseCost + distance * PER_KM_RATE
-    : 0;
+  const deliveryCost = isPickup || items.length === 0
+    ? 0
+    : selectedTransport.baseCost + distance * PER_KM_RATE;
   const totalCost = productCost + deliveryCost;
 
   const handleOrder = () => {
     if (items.length === 0) return;
     onNavigate({
       items,
-      deliveryType: selectedTransport.label,
-      distance,
+      deliveryType: isPickup ? 'Самовывоз' : selectedTransport.label,
+      distance: isPickup ? 0 : distance,
       totalWeight,
       productCost,
       deliveryCost,
       totalCost,
+      isPickup,
     });
   };
 
@@ -162,7 +165,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-lg p-8">
           <div className="flex items-center mb-8">
-            <Calculator className="h-8 w-8 text-orange-600 mr-3" />
+            <Calculator className="h-8 w-8 text-amber-600 mr-3" />
             <h1 className="text-3xl font-bold text-gray-900">Калькулятор стоимости</h1>
           </div>
 
@@ -177,14 +180,14 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
                   <select
                     value={selectedProductId}
                     onChange={(e) => setSelectedProductId(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                   >
                     <option value="">-- Выберите продукт --</option>
                     {Object.entries(productsByCategory).map(([cat, list]) => (
                       <optgroup key={cat} label={cat}>
                         {list.map(p => (
                           <option key={p.id} value={p.id}>
-                            {p.name} — {p.price_per_sqm} ₽/м²
+                            {p.name} — {p.price_per_sqm} ₽/{p.unit}
                           </option>
                         ))}
                       </optgroup>
@@ -193,15 +196,18 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
                 </div>
                 <div className="md:col-span-3">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Количество (м²)
+                    Количество ({(() => {
+                      const p = products.find(p => p.id === selectedProductId);
+                      return p ? p.unit : 'шт/м²';
+                    })()})
                   </label>
                   <input
                     type="number"
                     min="0"
-                    step="0.1"
+                    step={products.find(p => p.id === selectedProductId)?.unit === 'шт' ? '1' : '0.1'}
                     value={newQuantity || ''}
                     onChange={(e) => setNewQuantity(parseFloat(e.target.value) || 0)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                     placeholder="0"
                   />
                 </div>
@@ -209,7 +215,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
                   <button
                     onClick={addItem}
                     disabled={!selectedProductId || newQuantity <= 0}
-                    className="w-full flex items-center justify-center space-x-2 bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold"
+                    className="w-full flex items-center justify-center space-x-2 bg-amber-600 text-white py-3 rounded-lg hover:bg-amber-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold"
                   >
                     <Plus className="h-5 w-5" />
                     <span>Добавить</span>
@@ -232,22 +238,22 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
                       <div className="flex-1">
                         <div className="font-semibold text-gray-900">{item.product.name}</div>
                         <div className="text-sm text-gray-600">
-                          {item.product.category} • {item.product.price_per_sqm} ₽/м² •{' '}
-                          {getWeightPerSqm(item.product)} кг/м²
+                          {item.product.category} • {item.product.price_per_sqm} ₽/{item.product.unit} •{' '}
+                          {getWeightPerUnit(item.product)} кг/{item.product.unit}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <input
                           type="number"
                           min="0"
-                          step="0.1"
+                          step={item.product.unit === 'шт' ? '1' : '0.1'}
                           value={item.quantity}
                           onChange={(e) =>
                             updateItemQuantity(item.product.id, parseFloat(e.target.value) || 0)
                           }
                           className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-center"
                         />
-                        <span className="text-sm text-gray-600">м²</span>
+                        <span className="text-sm text-gray-600">{item.product.unit}</span>
                       </div>
                       <div className="w-28 text-right font-semibold text-gray-900">
                         {item.subtotal.toLocaleString('ru-RU')} ₽
@@ -264,23 +270,38 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
               </div>
             )}
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                <MapPin className="inline h-4 w-4 mr-1" />
-                Расстояние до места доставки (км)
-              </label>
+            <div className="flex items-center p-4 bg-gray-50 border border-gray-200 rounded-lg">
               <input
-                type="number"
-                min="0"
-                step="1"
-                value={distance || ''}
-                onChange={(e) => setDistance(parseFloat(e.target.value) || 0)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                placeholder="Введите расстояние в км"
+                id="pickup-checkbox"
+                type="checkbox"
+                checked={isPickup}
+                onChange={(e) => setIsPickup(e.target.checked)}
+                className="h-5 w-5 text-amber-600 rounded border-gray-300 focus:ring-amber-500"
               />
+              <label htmlFor="pickup-checkbox" className="ml-3 text-sm font-semibold text-gray-700 cursor-pointer">
+                Самовывоз (без доставки)
+              </label>
             </div>
 
-            {items.length > 0 && (
+            {!isPickup && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <MapPin className="inline h-4 w-4 mr-1" />
+                  Расстояние до места доставки (км)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={distance || ''}
+                  onChange={(e) => setDistance(parseFloat(e.target.value) || 0)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="Введите расстояние в км"
+                />
+              </div>
+            )}
+
+            {!isPickup && items.length > 0 && (
               <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
                 <div className="flex items-center mb-3">
                   <Truck className="h-6 w-6 text-blue-600 mr-2" />
@@ -302,7 +323,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
               </div>
             )}
 
-            <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-6 rounded-lg border-2 border-orange-200">
+            <div className="bg-gradient-to-r from-amber-50 to-amber-100 p-6 rounded-lg border-2 border-amber-200">
               <h3 className="text-lg font-semibold mb-4 text-gray-900">Расчет стоимости</h3>
               <div className="space-y-2">
                 <div className="flex justify-between text-gray-700">
@@ -313,7 +334,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
                   <span>Стоимость доставки:</span>
                   <span className="font-semibold">{deliveryCost.toLocaleString('ru-RU')} ₽</span>
                 </div>
-                <div className="border-t-2 border-orange-300 pt-2 mt-2 flex justify-between text-xl font-bold text-orange-700">
+                <div className="border-t-2 border-amber-300 pt-2 mt-2 flex justify-between text-xl font-bold text-amber-700">
                   <span>Итого:</span>
                   <span>{totalCost.toLocaleString('ru-RU')} ₽</span>
                 </div>
@@ -323,7 +344,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
             <button
               onClick={handleOrder}
               disabled={items.length === 0}
-              className="w-full flex items-center justify-center space-x-2 bg-orange-600 text-white py-4 rounded-lg hover:bg-orange-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed text-lg font-semibold"
+              className="w-full flex items-center justify-center space-x-2 bg-amber-600 text-white py-4 rounded-lg hover:bg-amber-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed text-lg font-semibold"
             >
               <ShoppingCart className="h-5 w-5" />
               <span>Оформить заявку</span>

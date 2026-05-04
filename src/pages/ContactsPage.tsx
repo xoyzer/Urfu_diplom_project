@@ -3,10 +3,10 @@ import { Phone, Mail, MapPin, Clock } from 'lucide-react';
 export function ContactsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <section className="bg-gradient-to-r from-orange-600 to-orange-700 text-white py-20">
+      <section className="bg-gradient-to-r from-amber-600 to-amber-700 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-5xl font-bold mb-6">Контакты</h1>
-          <p className="text-xl text-orange-100">
+          <p className="text-xl text-amber-100">
             Свяжитесь с нами любым удобным способом
           </p>
         </div>
@@ -21,8 +21,8 @@ export function ContactsPage() {
               <div className="space-y-6">
                 <div className="flex items-start space-x-4">
                   <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-lg">
-                      <Phone className="h-6 w-6 text-orange-600" />
+                    <div className="flex items-center justify-center w-12 h-12 bg-amber-100 rounded-lg">
+                      <Phone className="h-6 w-6 text-amber-600" />
                     </div>
                   </div>
                   <div>
@@ -34,8 +34,8 @@ export function ContactsPage() {
 
                 <div className="flex items-start space-x-4">
                   <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-lg">
-                      <Mail className="h-6 w-6 text-orange-600" />
+                    <div className="flex items-center justify-center w-12 h-12 bg-amber-100 rounded-lg">
+                      <Mail className="h-6 w-6 text-amber-600" />
                     </div>
                   </div>
                   <div>
@@ -47,8 +47,8 @@ export function ContactsPage() {
 
                 <div className="flex items-start space-x-4">
                   <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-lg">
-                      <MapPin className="h-6 w-6 text-orange-600" />
+                    <div className="flex items-center justify-center w-12 h-12 bg-amber-100 rounded-lg">
+                      <MapPin className="h-6 w-6 text-amber-600" />
                     </div>
                   </div>
                   <div>
@@ -60,8 +60,8 @@ export function ContactsPage() {
 
                 <div className="flex items-start space-x-4">
                   <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-lg">
-                      <Clock className="h-6 w-6 text-orange-600" />
+                    <div className="flex items-center justify-center w-12 h-12 bg-amber-100 rounded-lg">
+                      <Clock className="h-6 w-6 text-amber-600" />
                     </div>
                   </div>
                   <div>
@@ -73,7 +73,7 @@ export function ContactsPage() {
                 </div>
               </div>
 
-              <div className="mt-12 p-6 bg-orange-50 border border-orange-200 rounded-lg">
+              <div className="mt-12 p-6 bg-amber-50 border border-amber-200 rounded-lg">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Как добраться</h3>
                 <p className="text-gray-700 mb-4">
                   От метро Шоссе Энтузиастов: автобус №254 до остановки "Складская улица",
@@ -96,7 +96,7 @@ export function ContactsPage() {
                   <input
                     type="text"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                     placeholder="Ваше имя"
                   />
                 </div>
@@ -108,7 +108,7 @@ export function ContactsPage() {
                   <input
                     type="tel"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                     placeholder="+7 (999) 123-45-67"
                   />
                 </div>
@@ -119,7 +119,7 @@ export function ContactsPage() {
                   </label>
                   <input
                     type="email"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                     placeholder="example@mail.ru"
                   />
                 </div>
@@ -131,14 +131,14 @@ export function ContactsPage() {
                   <textarea
                     required
                     rows={5}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                     placeholder="Напишите ваше сообщение..."
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 transition-colors font-semibold"
+                  className="w-full bg-amber-600 text-white py-3 rounded-lg hover:bg-amber-700 transition-colors font-semibold"
                 >
                   Отправить сообщение
                 </button>

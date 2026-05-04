@@ -12,8 +12,18 @@ interface AdminDashboardProps {
   onNavigate?: (page: string) => void;
 }
 
+const ADMIN_SECTION_KEY = 'paving_admin_section';
+
 export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
-  const [activeSection, setActiveSection] = useState<Section>('orders');
+  const [activeSection, setActiveSection] = useState<Section>(() => {
+    const stored = localStorage.getItem(ADMIN_SECTION_KEY) as Section | null;
+    return stored || 'orders';
+  });
+
+  const changeSection = (section: Section) => {
+    setActiveSection(section);
+    localStorage.setItem(ADMIN_SECTION_KEY, section);
+  };
 
   const menuItems = [
     { id: 'orders' as Section, label: 'Заказы', icon: ShoppingCart },
@@ -29,7 +39,7 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         <aside className="w-64 bg-white shadow-lg min-h-screen">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center space-x-2">
-              <LayoutDashboard className="h-6 w-6 text-orange-600" />
+              <LayoutDashboard className="h-6 w-6 text-amber-600" />
               <h2 className="text-xl font-bold text-gray-900">CRM Панель</h2>
             </div>
           </div>
@@ -45,10 +55,10 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
               {menuItems.map((item) => (
                 <li key={item.id}>
                   <button
-                    onClick={() => setActiveSection(item.id)}
+                    onClick={() => changeSection(item.id)}
                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                       activeSection === item.id
-                        ? 'bg-orange-50 text-orange-600 font-semibold'
+                        ? 'bg-amber-50 text-amber-600 font-semibold'
                         : 'text-gray-700 hover:bg-gray-50'
                     }`}
                   >
