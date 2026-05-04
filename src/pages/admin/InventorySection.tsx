@@ -225,10 +225,25 @@ export function InventorySection() {
   }
 
   async function deleteTransaction(id: string) {
-    if (!confirm('Удалить операцию?')) return;
+    if (!confirm('Удалить операцию и вернуть остаток товара в прежнее состояние?')) return;
     try {
-      const { error } = await supabase.from('inventory_transactions').delete().eq('id', id);
-      if (error) throw error;
+      const tx = transactions.find(t => t.id === id);
+      if (!tx) return;
+
+      const { error: delErr } = await supabase.from('inventory_transactions').delete().eq('id', id);
+      if (delErr) throw delErr;
+
+      // Reverse the quantity change
+      const product = products.find(p => p.id === tx.product_id);
+      if (product) {
+        const { error: updErr } = await supabase
+          .from('products')
+          .update({ stock_quantity: product.stock_quantity - tx.quantity })
+          .eq('id', product.id);
+        if (updErr) throw updErr;
+      }
+
+      loadInventory();
       loadTransactions();
     } catch (err) {
       console.error('Error deleting transaction:', err);
@@ -295,10 +310,10 @@ export function InventorySection() {
             <input
               type="number"
               required
-              min="0.01"
-              step={products.find(p => p.id === receivingForm.product_id)?.unit === 'шт' ? '1' : '0.1'}
+              min="1"
+              step="1"
               value={receivingForm.quantity || ''}
-              onChange={(e) => setReceivingForm({ ...receivingForm, quantity: parseFloat(e.target.value) || 0 })}
+              onChange={(e) => setReceivingForm({ ...receivingForm, quantity: parseInt(e.target.value) || 0 })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
             />
           </div>
@@ -422,10 +437,10 @@ export function InventorySection() {
                       <input
                         type="number"
                         required
-                        min="0.01"
-                        step={selectedProduct?.unit === 'шт' ? '1' : '0.1'}
+                        min="1"
+                        step="1"
                         value={line.quantity || ''}
-                        onChange={(e) => updateShipmentLine(idx, 'quantity', parseFloat(e.target.value) || 0)}
+                        onChange={(e) => updateShipmentLine(idx, 'quantity', parseInt(e.target.value) || 0)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-400 text-sm"
                         placeholder="Кол-во"
                       />
