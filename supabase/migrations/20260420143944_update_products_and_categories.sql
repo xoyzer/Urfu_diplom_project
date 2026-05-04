@@ -17,7 +17,7 @@ BEGIN
   -- Insert Cement product in Смеси category
   INSERT INTO products (name, category, price_per_sqm, stock_quantity, description)
   VALUES
-    ('Цемент М500', 'Смеси', 450, 200, 'Портландцемент М500 высокого качества')
+    ('Цемент М500', 'Смеси', 350, 200, 'Портландцемент М500 высокого качества')
   ON CONFLICT DO NOTHING;
 
   -- Insert border products in Бордюры category
