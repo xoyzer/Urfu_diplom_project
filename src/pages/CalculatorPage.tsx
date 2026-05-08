@@ -51,6 +51,55 @@ const TRANSPORT_OPTIONS: Transport[] = [
 
 const PER_KM_RATE = 100;
 
+const ORIGIN = {
+  address: 'Московская обл., Щёлковский р-н, д. Долгое Ледово, ул. Академическая, 5',
+  lat: 55.899,
+  lon: 37.949,
+};
+
+const DELIVERY_REGIONS = [
+  'Москва',
+  'Московская область',
+  'Тверская область',
+  'Тульская область',
+  'Владимирская область',
+  'Ярославская область',
+  'Калужская область',
+];
+
+interface Geocoded {
+  lat: number;
+  lon: number;
+  displayName: string;
+}
+
+async function geocodeAddress(address: string): Promise<Geocoded | null> {
+  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ru&q=${encodeURIComponent(address)}`;
+  const res = await fetch(url, { headers: { 'Accept-Language': 'ru' } });
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (!Array.isArray(data) || data.length === 0) return null;
+  return {
+    lat: parseFloat(data[0].lat),
+    lon: parseFloat(data[0].lon),
+    displayName: data[0].display_name,
+  };
+}
+
+async function routeDistanceKm(
+  origin: { lat: number; lon: number },
+  dest: { lat: number; lon: number }
+): Promise<number | null> {
+  const url = `https://router.project-osrm.org/route/v1/driving/${origin.lon},${origin.lat};${dest.lon},${dest.lat}?overview=false`;
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  const data = await res.json();
+  const meters = data?.routes?.[0]?.distance;
+  if (typeof meters !== 'number') return null;
+  return Math.round(meters / 1000);
+}
+
+
 function pickTransport(totalWeightKg: number): Transport {
   for (const t of TRANSPORT_OPTIONS) {
     if (totalWeightKg <= t.capacityKg) return t;
