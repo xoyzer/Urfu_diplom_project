@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calculator, Truck, MapPin, ShoppingCart, Plus, Trash2 } from 'lucide-react';
+import { Calculator, Truck, MapPin, ShoppingCart, Plus, Trash2, Search, Loader2, Info } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/database';
 
