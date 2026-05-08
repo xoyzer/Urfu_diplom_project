@@ -198,6 +198,7 @@ export function CalculatorPage({ onNavigate }: CalculatorPageProps) {
     ? 0
     : selectedTransport.baseCost + distance * PER_KM_RATE;
   const totalCost = productCost + deliveryCost;
+  
 const handleCalculateDistance = async () => {
     if (!destAddress.trim()) return;
     setGeocoding(true);
