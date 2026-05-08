@@ -226,14 +226,11 @@ export function InventorySection() {
 
   async function deleteTransaction(id: string) {
     if (!confirm('Удалить операцию и вернуть остаток товара в прежнее состояние?')) return;
-
-    const tx = transactions.find(t => t.id === id);
-    if (!tx) return;
-
-    // Remove from local state immediately so user can't click again
-    setTransactions(prev => prev.filter(t => t.id !== id));
-
     try {
+      const tx = transactions.find(t => t.id === id);
+      if (!tx) return;
+
+      // Read current stock directly from DB to avoid stale local state
       const { data: freshProduct, error: fetchErr } = await supabase
         .from('products')
         .select('stock_quantity')
@@ -259,10 +256,6 @@ export function InventorySection() {
       loadTransactions();
     } catch (err) {
       console.error('Error deleting transaction:', err);
-      // Restore the transaction in local state if something failed
-      setTransactions(prev => [tx, ...prev].sort((a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      ));
       alert('Ошибка при удалении операции');
     }
   }
