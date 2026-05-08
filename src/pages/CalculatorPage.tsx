@@ -399,7 +399,7 @@ const handleCalculateDistance = async () => {
                       type="button"
                       onClick={handleCalculateDistance}
                       disabled={geocoding || !destAddress.trim()}
-                      className="flex items-center space-x-2 bg-orange-600 text-white px-4 py-3 rounded-lg hover:bg-orange-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold whitespace-nowrap"
+                      className="flex items-center space-x-2 bg-amber-700 text-white px-4 py-3 rounded-lg hover:bg-orange-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold whitespace-nowrap"
                     >
                       {geocoding ? (
                         <Loader2 className="h-5 w-5 animate-spin" />
